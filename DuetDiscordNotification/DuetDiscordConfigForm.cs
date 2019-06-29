@@ -109,8 +109,8 @@ namespace DuetDiscordNotification
             _config.DeletePrinter(SelectedPrinter);
             SelectedPrinter = null;
             gbPrinterSettings.Enabled = false;
-            UpdateList();
             _config.Save();
+            UpdateList();
         }
 
         private void btnSavePrinter_Click(object sender, EventArgs e)
@@ -120,6 +120,7 @@ namespace DuetDiscordNotification
             SelectedPrinter.Active = chkActive.Checked;
             SelectedPrinter.Webhook = txtWebhook.Text;
             _config.Save();
+            UpdateList();
         }
 
         public void UpdatePrinterArea()
@@ -135,7 +136,7 @@ namespace DuetDiscordNotification
         {
             foreach (var printer in _config.Printers)
             {
-                printer.UpdatePrinterStatus(_config.DiscordConfig);
+                printer.UpdatePrinterStatus();
             }
         }
 

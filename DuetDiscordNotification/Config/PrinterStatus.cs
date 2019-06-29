@@ -7,7 +7,11 @@ namespace DuetDiscordNotification.Config
         Unknown, //U
         Idle,   //I
         Printing, //P
-        Error //E
+        Error, //E
+        Flashing, //F
+        Paused, //D
+        Busy, //B
+        Halted // H
     }
 
 
@@ -15,33 +19,52 @@ namespace DuetDiscordNotification.Config
     {
         public static String GetString(this PrinterStatus status)
         {
+            string result = "Unknown";
             switch (status)
             {
                 case PrinterStatus.Unknown:
-                    return "Unknown";
+                    result = "Unknown";
                     break;
                 case PrinterStatus.Idle:
-                    return "Idle";
+                    result = "Idle";
                     break;
                 case PrinterStatus.Printing:
-                    return "Printing";
+                    result = "Printing";
                     break;
                 case PrinterStatus.Error:
-                    return "Error";
+                    result = "Error";
+                    break;
+                case PrinterStatus.Flashing:
+                    result = "Flashing";
+                    break;
+                case PrinterStatus.Paused:
+                    result = "Paused";
+                    break;
+                case PrinterStatus.Busy:
+                    result = "Busy";
+                    break;
+                case PrinterStatus.Halted:
+                    result = "Halted";
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(status), status, null);
             }
+
+            return result;
         }
 
         public static PrinterStatus GetCurrentStatus(string state)
         {
             PrinterStatus statusValue = PrinterStatus.Unknown;
-            if (state == "I")
+            if ("IC".Contains(state))
             {
                 statusValue = PrinterStatus.Idle;
             }
-            else if (state == "P")
+            if ("F".Contains(state))
+            {
+                statusValue = PrinterStatus.Flashing;
+            }
+            else if ("PTM".Contains(state))
             {
                 statusValue = PrinterStatus.Printing;
             }

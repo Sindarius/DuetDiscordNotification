@@ -10,7 +10,6 @@ namespace DuetDiscordNotification.Config
         public const string ConfigFile = @"C:\Users\Public\DuetDiscordNotification\config.json";
 
         public List<Printer> Printers { get; set; }
-        public DiscordConfig DiscordConfig { get; set; }
 
         public Configuration()
         {
@@ -25,7 +24,7 @@ namespace DuetDiscordNotification.Config
                 using (StreamReader reader = new StreamReader(ConfigFile))
                 {
                     var serializedConfig = reader.ReadToEnd();
-                    config = JsonConvert.DeserializeObject<Configuration>(serializedConfig);
+                    config = JsonConvert.DeserializeObject<Configuration>(serializedConfig, new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Ignore });
                 }
             }
             else
@@ -39,7 +38,6 @@ namespace DuetDiscordNotification.Config
                 config = new Configuration
                 {
                     Printers = new List<Printer>(),
-                    DiscordConfig = new DiscordConfig()
                 };
                 config.Save();
             }

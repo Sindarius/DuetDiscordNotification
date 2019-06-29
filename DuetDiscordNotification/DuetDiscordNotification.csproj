@@ -150,7 +150,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\Configuration.cs" />
-    <Compile Include="Config\DiscordConfig.cs" />
     <Compile Include="Config\Printer.cs" />
     <Compile Include="Config\PrinterStatus.cs" />
     <Compile Include="DuetDiscordConfigForm.cs">
@@ -160,6 +159,7 @@
       <DependentUpon>DuetDiscordConfigForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Messages\DiscordMessage.cs" />
+    <Compile Include="Messages\DuetFileMessage.cs" />
     <Compile Include="Messages\DuetMessage.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

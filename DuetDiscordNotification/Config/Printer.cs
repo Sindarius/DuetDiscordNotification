@@ -3,13 +3,10 @@ using Newtonsoft.Json;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 
 namespace DuetDiscordNotification.Config
 {
-
-
-
+    
     public class Printer
     {
 
@@ -23,12 +20,14 @@ namespace DuetDiscordNotification.Config
 
         [JsonIgnore] public double LastReportedPercent = -1;
 
+        [JsonIgnore] public string CurrentFilePrintingName;
+
 
         private HttpClient _client;
 
 
 
-        public void UpdatePrinterStatus(DiscordConfig discord)
+        public void UpdatePrinterStatus()
         {
             if (!Active) { return; }
             if (IPAddress == null) { return; }
@@ -55,7 +54,12 @@ namespace DuetDiscordNotification.Config
 
                         if (PrinterStatus == PrinterStatus.Printing)
                         {
+                            var fileResult = client.GetStringAsync($"http://{IPAddress}/rr_fileinfo");
+                            var fileResultJson = fileResult.Result;
+
+
                             LastReportedPercent = 0;
+                            GetFileInfo();
                         }
 
                     }
@@ -82,6 +86,20 @@ namespace DuetDiscordNotification.Config
         }
 
 
+        public void GetFileInfo()
+        {
+            //GetFileInfoResponse rr_fileinfo
+            using (HttpClient client = new HttpClient())
+            {
+                var result = client.GetStringAsync($"http://{IPAddress}/rr_fileinfo");
+                var resultJson = result.Result;
+                var duetFileMessage = JsonConvert.DeserializeObject(resultJson, typeof(DuetFileMessage), new JsonSerializerSettings { MissingMemberHandling = MissingMemberHandling.Ignore }) as DuetMessage;
+                
+            }
+
+
+        }
+
         public void SendMessage(string msg)
         {
             using (HttpClient discordClient = new HttpClient())
@@ -95,8 +113,8 @@ namespace DuetDiscordNotification.Config
                 var buffer = System.Text.Encoding.UTF8.GetBytes(json);
                 var content = new ByteArrayContent(buffer);
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-                var result  =  discordClient.PostAsync(Webhook, content).Result;
-                
+                var result = discordClient.PostAsync(Webhook, content).Result;
+
 
 
             }
