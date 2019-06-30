@@ -8,7 +8,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace DuetDiscordNotification.Messages
 {
-    public class DuetMessage
+    public class DuetStatusResponse
     {
         [JsonProperty(PropertyName = "status")]
         public string Status { get; set; }

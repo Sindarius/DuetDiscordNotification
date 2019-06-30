@@ -2,7 +2,7 @@
 
 namespace DuetDiscordNotification.Messages
 {
-    public class DuetFileMessage
+    public class DuetFileResponse
     {
         [JsonProperty("height")]
         public double Height { get; set; }

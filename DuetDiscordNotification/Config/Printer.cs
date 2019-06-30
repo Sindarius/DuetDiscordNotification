@@ -6,7 +6,7 @@ using System.Net.Http.Headers;
 
 namespace DuetDiscordNotification.Config
 {
-    
+
     public class Printer
     {
 
@@ -20,7 +20,7 @@ namespace DuetDiscordNotification.Config
 
         [JsonIgnore] public double LastReportedPercent = -1;
 
-        [JsonIgnore] public string CurrentFilePrintingName;
+        [JsonIgnore] public string CurrentFileName;
 
 
         private HttpClient _client;
@@ -38,13 +38,11 @@ namespace DuetDiscordNotification.Config
             {
                 using (HttpClient client = new HttpClient())
                 {
-
-                    var result = client.GetStringAsync($"http://{IPAddress}/rr_status?type=3");
-                    var printerJson = result.Result;
-                    var duetMessage = JsonConvert.DeserializeObject(printerJson, typeof(DuetMessage), new JsonSerializerSettings { MissingMemberHandling = MissingMemberHandling.Ignore }) as DuetMessage;
+                    //Check printer status
+                    var duetStatusRequest = GetStatus(client);
 
                     //Check printer state. if it has changed then we'll send a message to discord.
-                    var duetStatus = PrinterStatusMethods.GetCurrentStatus(duetMessage.Status);
+                    var duetStatus = PrinterStatusMethods.GetCurrentStatus(duetStatusRequest.Status);
 
                     //The status has changed
                     if (duetStatus != PrinterStatus)
@@ -54,12 +52,9 @@ namespace DuetDiscordNotification.Config
 
                         if (PrinterStatus == PrinterStatus.Printing)
                         {
-                            var fileResult = client.GetStringAsync($"http://{IPAddress}/rr_fileinfo");
-                            var fileResultJson = fileResult.Result;
-
-
+                            GetFileInfo(client);
                             LastReportedPercent = 0;
-                            GetFileInfo();
+                            SendMessage($"Printing {CurrentFileName}");
                         }
 
                     }
@@ -67,7 +62,7 @@ namespace DuetDiscordNotification.Config
                     //Check printer Percentage.
                     if (PrinterStatus == PrinterStatus.Printing)
                     {
-                        var increment = (int)duetMessage.FractionPrinted / 10; //We'll start with 10% increments and eventually make this configurable
+                        var increment = (int)duetStatusRequest.FractionPrinted / 10; //We'll start with 10% increments and eventually make this configurable
                         if (increment > LastReportedPercent)
                         {
                             SendMessage($"Print is currently at {increment * 10}%");
@@ -85,19 +80,20 @@ namespace DuetDiscordNotification.Config
             }
         }
 
-
-        public void GetFileInfo()
+        public DuetStatusResponse GetStatus(HttpClient client)
         {
-            //GetFileInfoResponse rr_fileinfo
-            using (HttpClient client = new HttpClient())
-            {
-                var result = client.GetStringAsync($"http://{IPAddress}/rr_fileinfo");
-                var resultJson = result.Result;
-                var duetFileMessage = JsonConvert.DeserializeObject(resultJson, typeof(DuetFileMessage), new JsonSerializerSettings { MissingMemberHandling = MissingMemberHandling.Ignore }) as DuetMessage;
-                
-            }
+            var result = client.GetStringAsync($"http://{IPAddress}/rr_status?type=3");
+            var printerJson = result.Result;
+            var duetMessage = JsonConvert.DeserializeObject(printerJson, typeof(DuetStatusResponse), new JsonSerializerSettings { MissingMemberHandling = MissingMemberHandling.Ignore }) as DuetStatusResponse;
+            return duetMessage;
+        }
 
-
+        public void GetFileInfo(HttpClient client)
+        {
+            var fileResult = client.GetStringAsync($"http://{IPAddress}/rr_fileinfo");
+            var fileResultJson = fileResult.Result;
+            var fileMessage = JsonConvert.DeserializeObject(fileResultJson, typeof(DuetFileResponse)) as DuetFileResponse;
+            CurrentFileName = fileMessage.FileName;
         }
 
         public void SendMessage(string msg)
@@ -114,9 +110,6 @@ namespace DuetDiscordNotification.Config
                 var content = new ByteArrayContent(buffer);
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                 var result = discordClient.PostAsync(Webhook, content).Result;
-
-
-
             }
         }
 
